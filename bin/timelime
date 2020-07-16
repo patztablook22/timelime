@@ -1,0 +1,35 @@
+#! /usr/bin/ruby
+
+begin
+  require 'timelime'
+rescue
+  puts "lib require failed"
+  exit 1
+end
+
+paths = ARGV
+if paths.size == 0
+  paths += ["."]
+end
+
+tree = Timelime::Tree.new(paths)
+table = Timelime::Table.new
+
+tree.get do |file|
+  Timelime.parse(file) do |event|
+    table.push event
+  end
+end
+
+if table.size == 0
+  puts "table is empty"
+end
+
+axis = Timelime::Axis.new(table)
+axis.generate
+
+puts
+axis.dump do |line|
+  puts line
+end
+puts
