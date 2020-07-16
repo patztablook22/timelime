@@ -2,6 +2,8 @@ module Timelime
 
   class Axis
 
+    attr_reader :buffer, :lines
+
     @table
     @buffer
     @begin
@@ -14,55 +16,81 @@ module Timelime
 
     def generate precision = 10
 
-      @buffer = []
+      @buffer = [
+        [], # L side
+        [], # R side
+      ]
       range = @table.range
       @begin = range[0]
       @length = range[1] - range[0]
       size = @table.size
       @lines = size * precision
 
-      for i in 0...@lines
-        @buffer += [
-          [
-            [], # ranges -> L side
-            [], # normal -> R side
-          ]
-        ]
-      end
-
-      # ranges
       @table.get do |e|
-        unless e.time.size == 2
-          next
-        end
-      end
-
-      # normal
-      @table.get do |e|
-        unless e.time.size == 1
-          next
-        end
-        todo = lines(e.time)[0]
-        @buffer[todo][1] += [e.head.to_s]
-
+        squeeze e
       end
 
     end
 
-    def dump &block
-      @buffer.each do |line|
-        tmp = line[0].to_s + "|" + line[1].to_s
-        yield tmp
+    def scale time
+      buf = time.data.map do |yr|
+        tmp = (1.0 * @lines * (yr - @begin) / @length).to_i
+        if tmp >= @lines
+          tmp = @lines - 1
+        end
+        tmp
       end
+      unless buf.size == 1
+        it = buf[0] + 1
+        while it < buf[1]
+          buf += [it]
+          it += 1
+        end
+      end
+      buf
+    end
+
+    def label line
+      @begin + @length * line / @lines
     end
 
     private
 
-    def lines time
-      tmp = time.data.map do |yr|
-        (1.0 * @lines * (yr - @begin) / @length).to_i - 1
+    def squeeze event
+
+      todo = scale event.time
+      if ( event.time.size == 2)
+        side = 0
+      else
+        side = 1
       end
-      tmp
+
+      found = nil
+      @buffer[side].each_with_index do |column, index|
+        
+        free = true
+        todo.each do |line|
+          unless column[line].nil?
+            free = false
+            break
+          end
+        end
+
+        if free
+          found = index
+        end
+
+      end
+      
+      if found.nil?
+        @buffer[side] += [Array.new(@lines)]
+        found = @buffer[side].size - 1
+      end
+
+      todo.each do |line|
+        @buffer[side][found][line] = event
+      end
+
     end
 
   end

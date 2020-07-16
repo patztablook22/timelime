@@ -26,10 +26,8 @@ if table.size == 0
 end
 
 axis = Timelime::Axis.new(table)
-axis.generate
+axis.generate 3
 
 puts
-axis.dump do |line|
-  puts line
-end
+Timelime::dump axis
 puts
