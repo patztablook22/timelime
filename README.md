@@ -6,7 +6,7 @@ run as root \
 `gem install timelime`
 
 # usage
-`timelime path/to/archive/tree
+`timelime path/to/archive/tree`
 
 # archive syntax
 ```md
