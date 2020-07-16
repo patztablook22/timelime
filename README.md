@@ -2,7 +2,7 @@
 a ruby timeliner
 
 # installation
-run as root
+run as root \
 `gem install timelime`
 
 # usage
