@@ -14,7 +14,13 @@ module Timelime
       @table = table
     end
 
-    def generate precision = 10
+    def to_b
+      true
+    end
+
+    def generate precision = nil
+
+      precision = precision.to_i
 
       @buffer = [
         [], # L side
@@ -23,7 +29,18 @@ module Timelime
       range = @table.range
       @begin = range[0]
       @length = range[1] - range[0]
+      if @length == 0
+        @length = 1
+      end
       size = @table.size
+
+      if precision == 0
+        precision = Math.log(@length).to_i
+        if precision == 0
+          precision = 1
+        end
+      end
+      
       @lines = size * precision
 
       @table.get do |e|

@@ -6,9 +6,10 @@ run as root \
 `gem install timelime`
 
 # usage
-`timelime path/to/archive/tree`
+`timelime --help`
 
-# archive syntax
+# file syntax
+`.md`-friendly:
 ```md
 # Some event
   *X BCE - Y CE*

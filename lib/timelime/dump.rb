@@ -6,6 +6,9 @@ module Timelime
 
     for c in 0...data[0].size
       for l in 0...data[0][c].size
+        if l - 1 < 0 or l + 1 >= data[0][c].size
+          next
+        end
         e = data[0][c][l]
         check = [e.to_s, "*"]
         above = data[0][c][l - 1].to_s
@@ -21,12 +24,10 @@ module Timelime
     data.map! do |s|
       s.map! do |c|
         c.map! do |e|
-          if e.nil?
-            nil
-          elsif e.class == Timelime::Event
+          if e.class == Timelime::Event
             e.head
           else
-            "*"
+            e
           end
         end
       end
@@ -59,14 +60,18 @@ module Timelime
 
       for s in 0..1
 
+        if s == 1
+          buf[-1] += " │ " + tab(axis.label(l), 6, 0) + " │ "
+        end
+
+        if data[s][l].nil?
+          next
+        end
+
         data[s][l].each_with_index do |txt, c|
 
           buf[-1] += tab(txt, tabs[s][c], s)
 
-        end
-
-        if s == 0
-          buf[-1] += " │ " + tab(axis.label(l), 6, 0) + " │ "
         end
 
       end

@@ -1,18 +1,52 @@
 #! /usr/bin/ruby
 
 begin
+  require 'optparse'
   require 'timelime'
 rescue
   puts "lib require failed"
   exit 1
 end
 
-paths = ARGV
-if paths.size == 0
-  paths += ["."]
+$options = {}
+ARGV.options do |opt|
+
+  opt.banner = "Usage: timelime options"
+
+  opt.on("-h", "--help", "print help") do
+    puts opt
+    exit
+  end
+
+  opt.on("-f", "--file [PATH]", "include path recursively") do |path|
+    unless path.nil? or path.empty?
+      $options[:file] = $options[:file].to_a + [path]
+    end
+  end
+
+  opt.on("-p", "--precision [NUM]", "timeline event precision") do |prec|
+    if prec.nil?
+      next
+    end
+    tmp = prec.to_i
+    if tmp.to_s == prec
+      $options[:precision] = tmp
+    end
+  end
+
+=begin
+  opt.on("-T", "--tags-inc [TAG1,TA...]", "process only given tags") do |tags|
+  end
+
+  opt.on("-t", "--tags-exc [TAG1,TA...]", "process all but given tags") do |tags|
+  end
+=end
+
+  opt.parse!
+
 end
 
-tree = Timelime::Tree.new(paths)
+tree  = Timelime::Tree.new( $options[:file].to_a )
 table = Timelime::Table.new
 
 tree.get do |file|
@@ -21,12 +55,13 @@ tree.get do |file|
   end
 end
 
+
 if table.size == 0
-  puts "table is empty"
+  exit
 end
 
 axis = Timelime::Axis.new(table)
-axis.generate 3
+axis.generate $options[:precision]
 
 puts
 Timelime::dump axis

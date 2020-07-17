@@ -44,8 +44,8 @@ module Timelime
 
       rescue
         err = true
-        puts "WARN: invalid definition: #{path} line #{number}"
-        puts "      skipping to next entry"
+        $stderr.puts "WARN: invalid definition: #{path} line #{number}"
+        $stderr.puts "      skipping to next entry"
       end
 
     end
