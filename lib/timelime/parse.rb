@@ -36,7 +36,7 @@ module Timelime
         case line[0]
         when "*"
           buf.time.push(line)
-        when "#"
+        when "@"
           buf.tags.push(line)
         else
         end

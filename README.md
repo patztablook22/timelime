@@ -15,7 +15,7 @@ run as root \
   *X BCE - Y CE*
   - comment
   - comment
-  #tag1 #tag2
+  @tag1 @tag2
 
 # Another event
 ...

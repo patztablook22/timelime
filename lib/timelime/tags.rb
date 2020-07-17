@@ -12,7 +12,7 @@ module Timelime
 
       raw.split.each do |tag|
 
-        unless tag[0] == "#" and tag.length > 1
+        unless tag[0] == "@" and tag.length > 1
           throw :syntax
         end
 
