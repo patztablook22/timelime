@@ -4,8 +4,11 @@ module Timelime
 
     attr_reader :data
 
-    def initialize 
+    def initialize raw = nil
       @data = []
+      unless raw.nil?
+        push raw
+      end
     end
 
     def push raw
@@ -22,8 +25,19 @@ module Timelime
 
     end
 
+    def has? tags
+      (@data & tags.data) == tags.data
+    end
+
     def to_s
-      @data.to_s
+      buf = ""
+      @data.each do |tag|
+        unless buf.empty?
+          buf += " "
+        end
+        buf += "@#{tag}"
+      end
+      buf
     end
     
   end

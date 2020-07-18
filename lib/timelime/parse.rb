@@ -21,7 +21,7 @@ module Timelime
         # new entry
         if line.lstrip == line
           if !buf.nil? and !err and buf.complete?
-            yield buf
+            yield(buf, number)
           end
           buf = Timelime::Event.new(line)
           err = false
@@ -40,7 +40,6 @@ module Timelime
           buf.tags.push(line)
         else
         end
-
 
       rescue
         err = true

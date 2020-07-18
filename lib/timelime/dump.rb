@@ -25,7 +25,9 @@ module Timelime
       s.map! do |c|
         c.map! do |e|
           if e.class == Timelime::Event
-            e.head
+            "[#{e.head}]"
+          elsif !e.nil? and e == "*"
+            "* "
           else
             e
           end

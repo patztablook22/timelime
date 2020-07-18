@@ -18,6 +18,11 @@ ARGV.options do |opt|
     exit
   end
 
+  opt.on("-v", "--version", "print version") do
+    puts "timelime version: #{Timelime::VERSION}"
+    exit
+  end
+
   opt.on("-f", "--file [PATH]", "include path recursively") do |path|
     unless path.nil? or path.empty?
       $options[:file] = $options[:file].to_a + [path]
@@ -34,13 +39,35 @@ ARGV.options do |opt|
     end
   end
 
-=begin
-  opt.on("-T", "--tags-inc [TAG1,TA...]", "process only given tags") do |tags|
+  opt.on("-t", "--tags-exc [@tag1 @tag2]", "process all but given tags") do |tags|
+    $options[:tagsExc] = $options[:tagsExc].to_a + [tags]
   end
 
-  opt.on("-t", "--tags-exc [TAG1,TA...]", "process all but given tags") do |tags|
+  opt.on("-T", "--tags-inc [@tag1 @tag2]", "process only given tags") do |tags|
+    $options[:tagsInc] = $options[:tagsInc].to_a + [tags]
   end
-=end
+
+  opt.on("-r", "--range-process [x - y]", "process only events matching given range") do |range|
+    $options[:rangeP] = $options[:rangeP].to_a + [range]
+  end
+
+  opt.on("-R", "--range-display [x - y]", "display axis only within given range") do |range|
+    $options[:rangeD] = range
+  end
+
+  opt.on("-l", "--locate [STR]", "locate event across given files") do |str|
+    if str.nil?
+      next
+    end
+    $options[:locate] = $options[:locate].to_a + [str.downcase]
+  end
+
+  opt.on("-i", "--info [HEAD]", "print HEAD information") do |head|
+    if head.nil?
+      next
+    end
+    $options[:info] = $options[:info].to_a + [head]
+  end
 
   opt.parse!
 
@@ -49,18 +76,72 @@ end
 tree  = Timelime::Tree.new( $options[:file].to_a )
 table = Timelime::Table.new
 
-tree.get do |file|
-  Timelime.parse(file) do |event|
-    table.push event
+$options[:rangeP].to_a.each do |time|
+  begin
+    table.time(time)
+  rescue
+    $stderr.puts "ERR: invalid time syntax: \"#{time}\""
+    exit 1
   end
 end
 
+unless $options[:rangeD].nil?
+  begin
+    Timelime::Time.new($options[:rangeD])
+  rescue
+    $stderr.puts "ERR: invalid time syntax: \"#{$options[:rangeD]}\""
+    exit 1
+  end
+end
 
-if table.size == 0
+[
+  $options[:tagsInc].to_a,
+  $options[:tagsExc].to_a,
+].each_with_index do |tmp, mode|
+  tmp.each do |tags|
+    begin
+      table.tags(tags, mode)
+    rescue
+      $stderr.puts "ERR: invalid tags syntax: \"#{tags}\""
+      exit 1
+    end
+  end
+end
+
+tree.get do |file|
+  Timelime.parse(file) do |event, line|
+
+    unless table.push event
+      next
+    end
+
+    $options[:locate].to_a.each do |str|
+      if event.head.to_s.downcase.include? str
+        puts "#{event.head}: #{file} line #{line}"
+        break
+      end
+    end
+
+    $options[:info].to_a.each do |head|
+      if event.head.to_s == head
+        puts "#{event.time}"
+        puts "#{event.tags}"
+      end
+
+    end
+
+  end
+
+end
+
+if table.size == 0 or !$options[:locate].nil? or !$options[:info].nil?
   exit
 end
 
 axis = Timelime::Axis.new(table)
+unless $options[:rangeD].nil?
+  axis.time($options[:rangeD])
+end
 axis.generate $options[:precision]
 
 puts

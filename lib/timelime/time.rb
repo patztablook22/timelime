@@ -4,8 +4,11 @@ module Timelime
 
     attr_reader :data
 
-    def initialize
+    def initialize raw = nil
       @data = []
+      unless raw.nil?
+        push raw
+      end
     end
 
     def size
@@ -77,14 +80,57 @@ module Timelime
 
       if @data.size == 2
         if @data[0] > @data[1]
-          throw
+          throw :syntax
         end
       end
 
     end
 
+    def range!
+      if size == 1
+        @data += [@data[0]]
+      end
+      self
+    end
+
+    def match? time
+
+      if size == 2
+        outer = self.data
+        inner = time.data
+      else
+        outer = time.data
+        inner = self.data
+      end
+
+      if outer[0] > inner[-1]
+        return false
+      elsif outer[-1] < inner[0]
+        return false
+      else
+        return true
+      end
+
+    end
+
     def to_s
-      @data.to_s
+      buf = ""
+      @data.each do |yr|
+
+        unless buf.empty?
+          buf += " - "
+        end
+
+        if yr >= 0
+          buf += yr.to_s
+          buf += " CE"
+        else
+          buf += (yr * -1).to_s
+          buf += " BCE"
+        end
+
+      end
+      buf
     end
 
   end

@@ -5,6 +5,7 @@ module Timelime
     attr_reader :buffer, :lines
 
     @table
+    @time
     @buffer
     @begin
     @length
@@ -12,6 +13,11 @@ module Timelime
 
     def initialize table
       @table = table
+    end
+
+    def time(t)
+      t = Timelime::Time.new(t)
+      @time = t.range!
     end
 
     def to_b
@@ -26,7 +32,11 @@ module Timelime
         [], # L side
         [], # R side
       ]
-      range = @table.range
+      if @time.nil?
+        range = @table.range
+      else
+        range = @time.data
+      end
       @begin = range[0]
       @length = range[1] - range[0]
       if @length == 0
@@ -52,7 +62,7 @@ module Timelime
     def scale time
       buf = time.data.map do |yr|
         tmp = (1.0 * @lines * (yr - @begin) / @length).to_i
-        if tmp >= @lines
+        if tmp == @lines
           tmp = @lines - 1
         end
         tmp
@@ -64,7 +74,14 @@ module Timelime
           it += 1
         end
       end
-      buf
+
+      if @time.nil?
+        buf
+      else
+        buf.filter do |l|
+          l >= 0 and l < @lines
+        end
+      end
     end
 
     def label line
@@ -76,6 +93,10 @@ module Timelime
     def squeeze event
 
       todo = scale event.time
+      if todo.empty?
+        return
+      end
+
       if ( event.time.size == 2)
         side = 0
       else
