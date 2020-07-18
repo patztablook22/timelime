@@ -1,6 +1,9 @@
 # timelime
 a ruby timeliner
 
+# dependencies
+ - ruby 2.3.0+
+
 # installation
 run as root \
 `gem install timelime`
